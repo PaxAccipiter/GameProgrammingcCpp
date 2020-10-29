@@ -28,6 +28,9 @@ private:
 	//SDLが作るウィンドウ
 	SDL_Window* mWindow;
 
+	//SDLが作るレンダラー
+	SDL_Renderer* mRenderer;
+
 	//ゲームの続行を支持する
 	bool mlsRunning;
 };

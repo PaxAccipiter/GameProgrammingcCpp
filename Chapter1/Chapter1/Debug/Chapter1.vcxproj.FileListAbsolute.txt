@@ -1,0 +1,2 @@
+D:\game_programing_c++\Chapter1\Chapter1\Debug\Chapter1.exe
+D:\game_programing_c++\Chapter1\Chapter1\Debug\Chapter1.pdb
