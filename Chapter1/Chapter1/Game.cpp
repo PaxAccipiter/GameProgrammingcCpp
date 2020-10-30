@@ -1,8 +1,12 @@
 #include "Game.h"
 
+const int thickness = 15;
+const float paddle_H = 100.0f;
+
 Game::Game()
 	:mWindow(nullptr)
-	, mlsRunning(true)
+	,mRenderer(nullptr)
+	,mlsRunning(true)
 {}
 
 bool Game::Initialize() {
@@ -38,6 +42,12 @@ bool Game::Initialize() {
 		SDL_Log("レンダラーの作成に失敗しました:%s", SDL_GetError());
 		return false;
 	}
+
+	mPaddlePos.x = 10.0f;
+	mPaddlePos.y = 768.0f / 2.0f;
+	mBallPos.x = 1024.0f / 2.0f;
+	mBallPos.y = 768.0f / 2.0f;
+
 
 	return true;
 }
@@ -87,5 +97,58 @@ void Game::UpdateGame() {
 }
 
 void Game::GenerateOutput() {
+	SDL_SetRenderDrawColor(
+		mRenderer,
+		0, //R
+		0, //G
+		255, //B
+		255 //A : 透明度
+		);
+
+	//設定した色でバックバッファを塗りつぶす。
+	SDL_RenderClear(mRenderer);
+
+	//不透明白色の長方形をかく。
+	SDL_SetRenderDrawColor(mRenderer, 255, 255, 255, 255);
+
+	SDL_Rect wall{
+		0, //長方形の左上隅のx(x,yはウィンドウの左上隅から右にxが増え、下にyが増えると考える。)
+		0, //長方形の左上隅のy
+		1024, //長方形の幅
+		thickness //長方形の高さ
+	};
+
+	SDL_RenderFillRect(mRenderer, &wall);
+
+	//下の壁追加
+	wall.y = 768 - thickness;
+	SDL_RenderFillRect(mRenderer, &wall);
+
+	//右の壁追加
+	wall.x = 1024 - thickness;
+	wall.y = 0;
+	wall.w = thickness;
+	wall.h = 1024;
+	SDL_RenderFillRect(mRenderer, &wall);
+
+	//Paddle
+	SDL_Rect paddle{
+		static_cast<int>(mPaddlePos.x - thickness / 2), //これ元のは、引いてないけど、引いたほうが良さそう。
+		static_cast<int>(mPaddlePos.y - paddle_H / 2),
+		thickness,
+		paddle_H
+	};
+	SDL_RenderFillRect(mRenderer, &paddle);
+
+	//Ball
+	SDL_Rect ball{
+		static_cast<int>(mBallPos.x - thickness / 2),
+		static_cast<int>(mBallPos.y - thickness / 2),
+		thickness,
+		thickness
+	};
+	SDL_RenderFillRect(mRenderer, &ball);
+	//フロントバッファとバックバッファの入れ替えこれで描画することになる。
+	SDL_RenderPresent(mRenderer);
 
 }
