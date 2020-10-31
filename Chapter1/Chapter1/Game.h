@@ -43,6 +43,15 @@ private:
 	//SDLが作るレンダラー
 	SDL_Renderer* mRenderer;
 
+	//デルタタイム
+	Uint32 mTicksCount;
+
+	//paddleの移動方向
+	int mPaddleDir;
+
+	//ballの速度
+	Vector2 mBallVel;
+
 	//ゲームの続行を支持する
 	bool mlsRunning;
 };
