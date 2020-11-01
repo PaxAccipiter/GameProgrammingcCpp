@@ -32,7 +32,10 @@ private:
 	void GenerateOutput();
 
 	//パドルの位置
-	Vector2 mPaddlePos;
+	Vector2 mPaddlePos1;
+
+	//パドルの位置2
+	Vector2 mPaddlePos2;
 	
 	//ボールの位置
 	Vector2 mBallPos;
@@ -46,8 +49,11 @@ private:
 	//デルタタイム
 	Uint32 mTicksCount;
 
-	//paddleの移動方向
-	int mPaddleDir;
+	//パドルの移動方向
+	int mPaddleDir1;
+	
+	//パドルの移動方向
+	int mPaddleDir2;
 
 	//ballの速度
 	Vector2 mBallVel;

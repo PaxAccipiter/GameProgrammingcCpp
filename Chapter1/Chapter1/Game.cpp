@@ -7,7 +7,8 @@ Game::Game()
 	:mWindow(nullptr)
 	,mRenderer(nullptr)
 	,mTicksCount(0)
-	,mPaddleDir(0)
+	,mPaddleDir1(0)
+	,mPaddleDir2(0)
 	,mlsRunning(true)
 {}
 
@@ -45,13 +46,15 @@ bool Game::Initialize() {
 		return false;
 	}
 
-	mPaddlePos.x = 10.0f;
-	mPaddlePos.y = 768.0f / 2.0f;
+	mPaddlePos1.x = 10.0f;
+	mPaddlePos1.y = 768.0f / 2.0f;
+	mPaddlePos2.x = 1014.0f;
+	mPaddlePos2.y = 768.0f / 2.0f;
 	mBallPos.x = 1024.0f / 2.0f;
 	mBallPos.y = 768.0f / 2.0f;
 
 	mBallVel.x = 150.0f;
-	mBallVel.y = 190.0f;
+	mBallVel.y = 200.0f;
 
 	return true;
 }
@@ -96,13 +99,21 @@ void Game::ProcessInput() {
 	}
 
 	//paddleの方向の更新。WとS両方押したら動かないようになっている。
-	mPaddleDir = 0;
+	mPaddleDir1 = 0;
 
 	if (state[SDL_SCANCODE_W]) {
-		mPaddleDir -= 1;
+		mPaddleDir1 -= 1;
 	}
 	else if (state[SDL_SCANCODE_S]) {
-		mPaddleDir += 1;
+		mPaddleDir1 += 1;
+	}
+
+	mPaddleDir2 = 0;
+	if (state[SDL_SCANCODE_I]) {
+		mPaddleDir2 -= 1;
+	}
+	else if (state[SDL_SCANCODE_K]) {
+		mPaddleDir2 += 1;
 	}
 
 }
@@ -123,15 +134,26 @@ void Game::UpdateGame() {
 	mTicksCount = SDL_GetTicks();
 
 	//ToDo: ゲームワールドのオブジェクトの更新を行う。
-	if (mPaddleDir != 0) {
-		mPaddlePos.y += mPaddleDir * 300.0f * deltaTime; //300.0fpixel/sでパドルは動く。
+	if (mPaddleDir1 != 0) {
+		mPaddlePos1.y += mPaddleDir1 * 300.0f * deltaTime; //300.0fpixel/sでパドルは動く。
 
 		//パドルが外に出ないようにする。
-		if (mPaddlePos.y < (paddle_H / 2.0f + thickness)) {//パドルの中心位置がパドルの高さと壁を合わせたものよりも上にあるとダメ
-			mPaddlePos.y = paddle_H / 2.0f + thickness;
+		if (mPaddlePos1.y < (paddle_H / 2.0f + thickness)) {//パドルの中心位置がパドルの高さと壁を合わせたものよりも上にあるとダメ
+			mPaddlePos1.y = paddle_H / 2.0f + thickness;
 		}
-		else if (mPaddlePos.y > 768.0f - (paddle_H / 2.0f + thickness)) {
-			mPaddlePos.y = 768.0f - (paddle_H / 2.0f + thickness);
+		else if (mPaddlePos1.y > 768.0f - (paddle_H / 2.0f + thickness)) {
+			mPaddlePos1.y = 768.0f - (paddle_H / 2.0f + thickness);
+		}
+	}
+
+	if (mPaddleDir2 != 0) {
+		mPaddlePos2.y += mPaddleDir2 * 300.0f * deltaTime;
+
+		if (mPaddlePos2.y > 768.0f - (paddle_H / 2.0f + thickness)) {
+			mPaddlePos2.y = 768.0f - (paddle_H / 2.0f + thickness);
+		}
+		else if (mPaddlePos2.y < paddle_H / 2.0f + thickness) {
+			mPaddlePos2.y = paddle_H / 2.0f + thickness;
 		}
 	}
 
@@ -140,7 +162,8 @@ void Game::UpdateGame() {
 	mBallPos.y += mBallVel.y * deltaTime;
 
 	//Ballの衝突判定
-	float diff = mPaddlePos.y - mBallPos.y;
+	float diff1 = mPaddlePos1.y - mBallPos.y;
+	float diff2 = mPaddlePos2.y - mBallPos.y;
 	
 	//壁との衝突
 	//上壁
@@ -148,16 +171,21 @@ void Game::UpdateGame() {
 		mBallVel.y = -mBallVel.y;
 	}
 	//右壁
-	if (mBallPos.x > 1024.0f - (thickness * 1.5f) && mBallVel.x > 0.0f) {
-		mBallVel.x = -mBallVel.x;
-	}
+	//if (mBallPos.x > 1024.0f - (thickness * 1.5f) && mBallVel.x > 0.0f) {
+	//	mBallVel.x = -mBallVel.x;
+	//}
 	//下壁
 	if (mBallPos.y > 768.0f - (thickness * 1.5f) && mBallVel.y > 0.0f) {
 		mBallVel.y = -mBallVel.y;
 	}
 	//パドル横
-	diff = diff < 0.0f ? -diff : diff;
-	if (diff < paddle_H / 2.0f && mPaddlePos.x + thickness / 2.0f < mBallPos.x && mBallPos.x < mPaddlePos.x + thickness && mBallVel.x < 0.0f) {
+	diff1 = diff1 < 0.0f ? -diff1 : diff1;
+	if (diff1 < paddle_H / 2.0f && mPaddlePos1.x + thickness / 2.0f < mBallPos.x && mBallPos.x < mPaddlePos1.x + thickness && mBallVel.x < 0.0f) {
+		mBallVel.x = -mBallVel.x;
+	}
+	//2pパドル横
+	diff2 = diff2 < 0.0f ? -diff2 : diff2;
+	if (diff2 < paddle_H / 2.0f && mPaddlePos2.x - thickness < mBallPos.x && mBallPos.x < mPaddlePos2.x - thickness / 2.0f && mBallVel.x > 0.0f) {
 		mBallVel.x = -mBallVel.x;
 	}
 	//パドル上下
@@ -193,20 +221,28 @@ void Game::GenerateOutput() {
 	SDL_RenderFillRect(mRenderer, &wall);
 
 	//右の壁追加
-	wall.x = 1024 - thickness;
-	wall.y = 0;
-	wall.w = thickness;
-	wall.h = 1024;
-	SDL_RenderFillRect(mRenderer, &wall);
+	//wall.x = 1024 - thickness;
+	//wall.y = 0;
+	//wall.w = thickness;
+	//wall.h = 1024;
+	//SDL_RenderFillRect(mRenderer, &wall);
 
 	//Paddle
-	SDL_Rect paddle{
-		static_cast<int>(mPaddlePos.x - thickness / 2), //これ元のは、引いてないけど、引いたほうが良さそう。
-		static_cast<int>(mPaddlePos.y - paddle_H / 2),
+	SDL_Rect paddle1{
+		static_cast<int>(mPaddlePos1.x - thickness / 2), //これ元のは、引いてないけど、引いたほうが良さそう。
+		static_cast<int>(mPaddlePos1.y - paddle_H / 2),
 		thickness,
 		paddle_H
 	};
-	SDL_RenderFillRect(mRenderer, &paddle);
+	SDL_RenderFillRect(mRenderer, &paddle1);
+
+	SDL_Rect paddle2{
+		static_cast<int>(mPaddlePos2.x - thickness / 2),
+		static_cast<int>(mPaddlePos2.y - thickness / 2),
+		thickness,
+		paddle_H
+	};
+	SDL_RenderFillRect(mRenderer, &paddle2);
 
 	//Ball
 	SDL_Rect ball{
@@ -219,7 +255,7 @@ void Game::GenerateOutput() {
 	//フロントバッファとバックバッファの入れ替えこれで描画することになる。
 	SDL_RenderPresent(mRenderer);
 
-	if (mBallPos.x < 0.0f) {
+	if ((mBallPos.x < 0.0f) | (mBallPos.x > 1024.0f)) {
 		mlsRunning = false;
 	}
 }
